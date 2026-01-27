@@ -36,7 +36,8 @@ dependencies = [
     "numpy==2.2.6",
     "pyfqmr==0.5.0",
     "scipy==1.17.0",
-    "wxPython==4.2.4"
+    "wxPython==4.2.4",
+    "ezdxf"
 ]
 
 [project.urls]
