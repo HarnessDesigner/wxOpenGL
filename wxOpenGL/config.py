@@ -1,0 +1,290 @@
+
+import wx
+import sqlite3
+
+
+class _ConfigTable:
+    """
+    This class represents a table in the sqlite database.
+
+    This class mimicks some of the features of a dictionary so the saved
+    entries are able to be accessed by using the attaribute name as a key.
+    """
+
+    def __init__(self, con, name):
+        self._con = con
+        self.name = name
+
+    def __contains__(self, item):
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'SELECT id FROM {self.name} WHERE key = "{item}";')
+            if cur.fetchall():
+                cur.close()
+                return True
+
+            cur.close()
+
+        return False
+
+    def __getitem__(self, item):
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'SELECT value FROM {self.name} WHERE key = "{item}";')
+            value = cur.fetchall()[0][0]
+            cur.close()
+
+        try:
+            return eval(value)
+        except:  # NOQA
+            return value
+
+    def __setitem__(self, key, value):
+        value = str(value)
+
+        if key not in self:
+            with self._con:
+                cur = self._con.cursor()
+                cur.execute(f'INSERT INTO {self.name} (key, value) VALUES(?, ?);', (key, value))
+                self._con.commit()
+                cur.close()
+        else:
+            with self._con:
+                cur = self._con.cursor()
+                cur.execute(f'UPDATE {self.name} SET value = "{value}" WHERE key = "{key}";')
+
+                self._con.commit()
+                cur.close()
+
+    def __delitem__(self, key):
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'DELETE FROM {self.name} WHERE key = "{key}"')
+            self._con.commit()
+            cur.close()
+
+
+class _ConfigDB:
+    """
+    This class handles the actual connection to the sqlite database.
+
+    Handles what table in the database is to be accessed. The tables are
+    not cached because most of the information that is stored only gets loaded
+    when the application starts and data gets saved to the database if a value
+    gets modified and also when the application exits.
+    """
+
+    def __init__(self):
+
+        import threading
+
+        self.lock = threading.Lock()
+
+        self._config_file_path = ':memory:'
+        self._con = None
+
+    def set_path(self, path):
+        self._config_file_path = path
+
+    def open(self):
+        if self._con is not None:
+            raise RuntimeError('The config database is already open')
+
+        self._con = sqlite3.connect(self._config_file_path, check_same_thread=False)
+
+    def __contains__(self, item):
+        if self._con is None:
+            self.open()
+
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute('SELECT name FROM sqlite_master WHERE type="table";')
+            tables = [row[0] for row in cur.fetchall()]
+            cur.close()
+
+        return item in tables
+
+    def __getitem__(self, item):
+        if item not in self:
+            with self._con:
+                cur = self._con.cursor()
+                cur.execute(f'CREATE TABLE {item}('
+                            'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                            'key TEXT UNIQUE NOT NULL, '
+                            'value TEXT NOT NULL'
+                            ');')
+                self._con.commit()
+                cur.close()
+
+        return _ConfigTable(self._con, item)
+
+    def close(self):
+        self._con.close()
+
+
+class _Config(type):
+    __db__ = _ConfigDB()
+    __classes__ = []
+
+    def __init__(cls, name, bases, dct):
+        super().__init__(name, bases, dct)
+        _Config.__classes__.append(cls)
+
+    def _save(cls):
+        for key in dir(cls):
+            if key.startswith('_'):
+                continue
+
+            value = getattr(cls, key)
+            if callable(value):
+                continue
+
+            cls.__table__[key] = value
+
+    @property
+    def __table_name__(cls):
+        name = f'{cls.__module__.split(".", 1)[-1]}_{cls.__qualname__}'
+        name = name.replace(".", "_")
+        name = name.replace('harness_designer_Config_', '')
+        name = name.replace('_Config', '')
+        return name
+
+    @property
+    def __table__(cls):
+        return _Config.__db__[cls.__table_name__]
+
+    def __getitem__(cls, item):
+        return getattr(cls, item)
+
+    def __getattribute__(cls, item):
+        if item.startswith('_'):
+            return type.__getattribute__(cls, item)
+
+        value = type.__getattribute__(cls, item)
+        if callable(value):
+            return value
+
+        if item in cls.__table__:
+            return cls.__table__[item]
+
+        return value
+
+    def __setitem__(cls, key, value):
+        setattr(cls, key, value)
+
+    def __setattr__(cls, key, value):
+        type.__setattr__(cls, key, value)
+
+        if not key.startswith('_'):
+            cls.__table__[key] = value
+
+    def __delitem__(cls, key):
+        delattr(cls, key)
+
+    def __delattr__(cls, item):
+        if item in cls.__table__:
+            del cls.__table__[item]
+
+        type.__delattr__(cls, item)
+
+    @staticmethod
+    def close():
+        for cls in _Config.__classes__:
+            cls._save()
+
+        _Config.__db__.close()
+
+    @staticmethod
+    def set_path(path):
+        _Config.__db__.set_path(path)
+
+
+MOUSE_NONE = 0x00000000
+MOUSE_LEFT = 0x00000001
+MOUSE_MIDDLE = 0x00000002
+MOUSE_RIGHT = 0x00000004
+MOUSE_AUX1 = 0x00000008
+MOUSE_AUX2 = 0x00000010
+MOUSE_WHEEL = 0x00000020
+
+MOUSE_REVERSE_X_AXIS = 0x80000000
+MOUSE_REVERSE_Y_AXIS = 0x40000000
+MOUSE_REVERSE_WHEEL_AXIS = 0x20000000
+MOUSE_SWAP_AXIS = 0x10000000
+
+
+class Config(metaclass=_Config):
+
+    ground_height = 0.0
+    eye_height = 10.0
+
+    class grid(metaclass=_Config):
+        render = True
+        size = 1000
+        step = 50
+
+        odd_color = [0.3, 0.3, 0.3, 0.4]
+        even_color = [0.8, 0.8, 0.8, 0.4]
+
+    class modeling(metaclass=_Config):
+        smooth = False
+
+    class virtual_canvas(metaclass=_Config):
+        width = 0
+        height = 0
+
+    class movement(metaclass=_Config):
+        angle_detent = 10.0
+        move_detent = 5.0
+
+        angle_snap = -1
+        move_snap = -1
+
+    class keyboard_settings(metaclass=_Config):
+        max_speed_factor = 10.0
+        speed_factor_increment = 0.1
+        start_speed_factor = 1.0
+
+    class rotate(metaclass=_Config):
+        mouse = MOUSE_MIDDLE
+        up_key = ord('w')
+        down_key = ord('s')
+        left_key = ord('a')
+        right_key = ord('d')
+        sensitivity = 0.4
+
+    class pan_tilt(metaclass=_Config):
+        mouse = MOUSE_LEFT
+        up_key = ord('o')
+        down_key = ord('l')
+        left_key = ord('k')
+        right_key = ord(';')
+        sensitivity = 0.2
+
+    class truck_pedistal(metaclass=_Config):
+        mouse = MOUSE_RIGHT
+        up_key = ord('8')
+        down_key = ord('2')
+        left_key = ord('4')
+        right_key = ord('6')
+        sensitivity = 0.2
+        speed = 1.0
+
+    class walk(metaclass=_Config):
+        mouse = MOUSE_WHEEL | MOUSE_SWAP_AXIS
+        forward_key = wx.WXK_UP
+        backward_key = wx.WXK_DOWN
+        left_key = wx.WXK_LEFT
+        right_key = wx.WXK_RIGHT
+        sensitivity = 1.0
+        speed = 1.0
+
+    class zoom(metaclass=_Config):
+        mouse = MOUSE_NONE  # | MOUSE_REVERSE_WHEEL_AXIS
+        in_key = wx.WXK_ADD
+        out_key = wx.WXK_SUBTRACT
+        sensitivity = 1.0
+
+    class reset(metaclass=_Config):
+        key = wx.WXK_HOME
+        mouse = MOUSE_NONE
