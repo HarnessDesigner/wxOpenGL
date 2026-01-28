@@ -24,6 +24,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Build and Install
+      - name: Build
+        run: |
+          python setup.py build
+
+      - name: Install
         run: |
           pip install .
