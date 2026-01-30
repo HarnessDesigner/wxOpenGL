@@ -11,6 +11,7 @@ import ctypes
 
 
 from .geometry import point as _point
+from . import headlight as _headlight
 from . import debug as _debug
 from .config import Config
 from .config import MOUSE_REVERSE_Y_AXIS
@@ -137,6 +138,7 @@ class Canvas(glcanvas.GLCanvas):
 
         self._key_handler = _key_handler.KeyHandler(self)
         self._mouse_handler = _mouse_handler.MouseHandler(self)
+        self._headlight: _headlight.Headlight = None
 
         font = self.GetFont()
         font.SetPointSize(15)
@@ -698,6 +700,14 @@ class Canvas(glcanvas.GLCanvas):
             GL.glLoadIdentity()
 
             self.camera.Set()
+
+            if Config.headlight.turn_on and self._headlight is None:
+                self._headlight = _headlight.Headlight(self)
+            elif not Config.headlight and self._headlight is not None:
+                self._headlight = None
+
+            if self._headlight is not None:
+                self._headlight()
 
             GL.glPushMatrix()
 

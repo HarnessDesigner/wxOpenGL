@@ -84,12 +84,12 @@ class Canvas(wx.Panel):
         wx.Panel.__init__(self, parent, wx.ID_ANY, style=wx.BORDER_NONE)
         view_size = _canvas.Canvas.GetViewSize()
 
-        self._panel = wx.Panel(self, wx.ID_ANY)
-        vsizer = wx.BoxSizer(wx.VERTICAL)
-        hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(self._panel, 1, wx.EXPAND)
-        vsizer.Add(hsizer, 1, wx.EXPAND)
-        self.SetSizer(vsizer)
+        self._panel = wx.Panel(self, wx.ID_ANY, pos=(0, 0))
+        # vsizer = wx.BoxSizer(wx.VERTICAL)
+        # hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        # hsizer.Add(self._panel, 1, wx.EXPAND)
+        # vsizer.Add(hsizer, 1, wx.EXPAND)
+        # self.SetSizer(vsizer)
 
         self._ref_count = 0
 
@@ -97,7 +97,17 @@ class Canvas(wx.Panel):
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self._on_erase_background)
 
-        # self.Bind(wx.EVT_SIZE, self._on_size)
+        self.Bind(wx.EVT_SIZE, self._on_size)
+
+    def _on_size(self, evt):
+        w, h = evt.GetSize()
+        self._panel.SetSize((w, h))
+        cw, ch = self._canvas.GetSize()
+
+        x = (w - cw) // 2
+        y = (h - ch) // 2
+
+        self._canvas.Move(x, y)
 
     @staticmethod
     def GetViewSize() -> _point.Point:

@@ -50,5 +50,6 @@ class MeshModel(_base3d.Base3D):
 
         self.__model_data = _ModelData(file)
         data = self.__model_data.data[:]
+
         _base3d.Base3D.__init__(self, canvas, material, selected_material,
                                 smooth, data, position, angle)

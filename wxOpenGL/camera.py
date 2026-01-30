@@ -184,7 +184,7 @@ import numpy as np
 from .geometry import point as _point
 from .geometry import angle as _angle
 from .geometry import line as _line
-
+from . import focal_target as _focal_target
 from .wrappers.decimal import Decimal as _decimal
 from . import Config
 from . import debug as _debug
@@ -216,10 +216,11 @@ class Camera:
         self._right_norm = None
         self._forward_norm = None
         self._frustum_planes = None
+        self._focal_target = None
 
-        self._position = _point.Point(0.0, Config.eye_height, 0.0)
+        self._position = _point.Point(0.0, Config.eye_height, 100)
 
-        self._eye = _point.Point(0.0, Config.eye_height + 25.0, 300.0)
+        self._eye = _point.Point(0.0, Config.eye_height + 25.0, 175.0)
 
         self._angle = _angle.Angle.from_points(self._position, self._eye)
 
@@ -257,6 +258,11 @@ class Camera:
             self._eye.y = Config.ground_height + 0.05
             return
 
+        if Config.camera.focal_target_visible and self._focal_target is None:
+            self._focal_target = _focal_target.FocalPoint(self.canvas)
+        elif not Config.camera.focal_target_visible and self._focal_target is not None:
+            self._focal_target = None
+
         if self._context.is_locked:
             self._is_dirty = True
         else:
@@ -287,8 +293,8 @@ class Camera:
         aabb_in_frustum_planes = self._aabb_in_frustum_planes
         res = [
             [_line.Line(self._eye, obj.position).length(), obj] for obj in objs
-            if any(aabb_in_frustum_planes(mn.as_float, mx.as_float, planes)
-                   for mn, mx in obj.rect)]
+            if isinstance(obj, _focal_target.FocalPoint) or
+            any(aabb_in_frustum_planes(mn.as_float, mx.as_float, planes) for mn, mx in obj.rect)]
 
         # sort the objects by distance from the camera
         res = sorted(res, key=lambda o: o[0])

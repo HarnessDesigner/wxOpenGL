@@ -1,11 +1,5 @@
 from OpenGL import GL
-
-
-def _remap(value, old_min, old_max, new_min, new_max):
-    old_range = old_max - old_min
-    new_range = new_max - new_min
-    new_value = (((value - old_min) * new_range) / old_range) + new_min
-    return new_value
+from . import utils as _utils
 
 
 class GLMaterial:
@@ -146,17 +140,17 @@ class RubberMaterial(GLMaterial):
             dr, dg, db = (0.01, 0.01, 0.01)
             sr, sg, sb = (0.4, 0.4, 0.4)
         else:
-            ar = _remap(r, 0.0, 1.0, 0.0, 0.05)
-            ag = _remap(g, 0.0, 1.0, 0.0, 0.05)
-            ab = _remap(b, 0.0, 1.0, 0.0, 0.05)
+            ar = _utils.remap(r, 0.0, 1.0, 0.0, 0.05)
+            ag = _utils.remap(g, 0.0, 1.0, 0.0, 0.05)
+            ab = _utils.remap(b, 0.0, 1.0, 0.0, 0.05)
 
-            dr = _remap(r, 0.0, 1.0, 0.4, 0.5)
-            dg = _remap(g, 0.0, 1.0, 0.4, 0.5)
-            db = _remap(b, 0.0, 1.0, 0.4, 0.5)
+            dr = _utils.remap(r, 0.0, 1.0, 0.4, 0.5)
+            dg = _utils.remap(g, 0.0, 1.0, 0.4, 0.5)
+            db = _utils.remap(b, 0.0, 1.0, 0.4, 0.5)
 
-            sr = _remap(r, 0.0, 1.0, 0.04, 0.7)
-            sg = _remap(g, 0.0, 1.0, 0.04, 0.7)
-            sb = _remap(b, 0.0, 1.0, 0.04, 0.7)
+            sr = _utils.remap(r, 0.0, 1.0, 0.04, 0.7)
+            sg = _utils.remap(g, 0.0, 1.0, 0.04, 0.7)
+            sb = _utils.remap(b, 0.0, 1.0, 0.04, 0.7)
 
         self._ambient = (ar, ag, ab)
         self._diffuse = (dr, dg, db)
@@ -164,26 +158,26 @@ class RubberMaterial(GLMaterial):
 
 
 class MetallicMaterial(GLMaterial):
-    _ambient = (0.00, 0.00, 0.0)
+    _ambient = (0.0, 0.0, 0.0)
     _diffuse = (0.0, 0.0, 0.0)
-    _specular = (0.0, 0.0, 0.00)
+    _specular = (0.0, 0.0, 0.0)
     _shine = 51.2
 
     def __init__(self, color):
         super().__init__(color)
         r, g, b, _ = color
 
-        ar = _remap(r, 0.75294, 1.0, 0.19215, 0.24705)
-        ag = _remap(g, 0.75294, 0.843137, 0.19215, 0.19607)
-        ab = _remap(b, 0.0, 0.75294, 0.07058, 0.19215)
+        ar = _utils.remap(r, 0.75294, 1.0, 0.19215, 0.24705)
+        ag = _utils.remap(g, 0.75294, 0.843137, 0.19215, 0.19607)
+        ab = _utils.remap(b, 0.0, 0.75294, 0.07058, 0.19215)
 
-        dr = _remap(r, 0.75294, 1.0, 0.50588, 0.3451)
-        dg = _remap(g, 0.75294, 0.843137, 0.50588, 0.3137)
-        db = _remap(b, 0.0, 0.75294, 0.09019, 0.50588)
+        dr = _utils.remap(r, 0.75294, 1.0, 0.50588, 0.3451)
+        dg = _utils.remap(g, 0.75294, 0.843137, 0.50588, 0.3137)
+        db = _utils.remap(b, 0.0, 0.75294, 0.09019, 0.50588)
 
-        sr = _remap(r, 0.75294, 1.0, 0.50588, 0.79607)
-        sg = _remap(g, 0.75294, 0.843137, 0.50588, 0.72156)
-        sb = _remap(b, 0.0, 0.75294, 0.2078, 0.50588)
+        sr = _utils.remap(r, 0.75294, 1.0, 0.50588, 0.79607)
+        sg = _utils.remap(g, 0.75294, 0.843137, 0.50588, 0.72156)
+        sb = _utils.remap(b, 0.0, 0.75294, 0.2078, 0.50588)
 
         self._ambient = (ar, ag, ab)
         self._diffuse = (dr, dg, db)
@@ -200,20 +194,20 @@ class PolishedMaterial(GLMaterial):
         super().__init__(color)
         r, g, b, _ = color
 
-        ar = _remap(r, 0.75294, 1.0, 0.22745, 0.24705)
-        ag = _remap(g, 0.75294, 0.843137, 0.22745, 0.22352)
-        ab = _remap(b, 0.0, 0.75294, 0.06274, 0.22745)
+        ar = _utils.remap(r, 0.75294, 1.0, 0.22745, 0.24705)
+        ag = _utils.remap(g, 0.75294, 0.843137, 0.22745, 0.22352)
+        ab = _utils.remap(b, 0.0, 0.75294, 0.06274, 0.22745)
 
-        dr = _remap(r, 0.75294, 1.0, 0.27450, 0.34509)
-        dg = _remap(g, 0.75294, 0.843137, 0.27450, 0.31372)
-        db = _remap(b, 0.0, 0.75294, 0.09019, 0.27450)
+        dr = _utils.remap(r, 0.75294, 1.0, 0.27450, 0.34509)
+        dg = _utils.remap(g, 0.75294, 0.843137, 0.27450, 0.31372)
+        db = _utils.remap(b, 0.0, 0.75294, 0.09019, 0.27450)
 
-        sr = _remap(r, 0.75294, 1.0, 0.77254, 0.79607)
-        sg = _remap(g, 0.75294, 0.843137, 0.77254, 0.72156)
-        sb = _remap(b, 0.0, 0.75294, 0.20784, 0.77254)
+        sr = _utils.remap(r, 0.75294, 1.0, 0.77254, 0.79607)
+        sg = _utils.remap(g, 0.75294, 0.843137, 0.77254, 0.72156)
+        sb = _utils.remap(b, 0.0, 0.75294, 0.20784, 0.77254)
 
         self._ambient = (ar, ag, ab)
         self._diffuse = (dr, dg, db)
         self._specular = (sr, sg, sb)
 
-        self._shine = _remap(r + g + b, 1.843137, 2.25882, 83.2, 89.6)
+        self._shine = _utils.remap(r + g + b, 1.843137, 2.25882, 83.2, 89.6)

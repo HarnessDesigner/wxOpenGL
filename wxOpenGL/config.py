@@ -253,6 +253,11 @@ class Config(metaclass=_Config):
     reflections = False
     reflection_strength = 50.0
 
+    class camera(metaclass=_Config):
+        focal_target_visible = True
+        focal_target_color = [1.0, 0.4, 0.4, 1.0]
+        focal_target_radius = 0.25
+
     class grid(metaclass=_Config):
         render = True
         size = 1000
@@ -321,7 +326,13 @@ class Config(metaclass=_Config):
         key = wx.WXK_HOME
         mouse = MOUSE_NONE
 
-    class debug:
+    class debug(metaclass=_Config):
         log_args = False
         call_duration = False
         bypass = True
+
+    class headlight(metaclass=_Config):
+        turn_on = True
+        cutoff = 8.0
+        dissipate = 50.0
+        color = [0.4, 0.4, 0.4, 0.8]
