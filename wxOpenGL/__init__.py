@@ -83,20 +83,12 @@ class Canvas(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, wx.ID_ANY, style=wx.BORDER_NONE)
         view_size = _canvas.Canvas.GetViewSize()
-
-        self._panel = wx.Panel(self, wx.ID_ANY, pos=(0, 0))
-        # vsizer = wx.BoxSizer(wx.VERTICAL)
-        # hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        # hsizer.Add(self._panel, 1, wx.EXPAND)
-        # vsizer.Add(hsizer, 1, wx.EXPAND)
-        # self.SetSizer(vsizer)
-
         self._ref_count = 0
 
+        self._panel = wx.Panel(self, wx.ID_ANY, pos=(0, 0))
         self._canvas = _canvas.Canvas(self._panel, size=view_size.as_int[:-1], pos=(0, 0))
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self._on_erase_background)
-
         self.Bind(wx.EVT_SIZE, self._on_size)
 
     def _on_size(self, evt):
