@@ -115,9 +115,8 @@ setup(
         "cadquery-ocp==7.8.1.1",
         "numpy==2.2.6",
         "pyfqmr==0.5.0",
-        "scipy==1.17.0",
         "wxPython==4.2.4",
-        "pillow",
+        "pillow==12.1.0",
         "pyassimp @ file:///" + os.path.join(base_path, 'libs/assimp/port/PyAssimp')
     ],
     classifiers=[

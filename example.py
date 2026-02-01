@@ -1,5 +1,7 @@
 import wx
 import wxOpenGL
+import threading
+import time
 
 material = wxOpenGL.PlasticMaterial([0.4, 0.4, 0.4, 1.0])
 selected_material = wxOpenGL.PlasticMaterial([1.0, 0.5, 0.5, 1.0])
@@ -20,7 +22,14 @@ class Frame(wx.Frame):
         hsizer.Add(self.canvas, 1, wx.EXPAND)
         vsizer.Add(hsizer, 1, wx.EXPAND)
         self.SetSizer(vsizer)
+        self.model = None
 
+        t = threading.Thread(target=self._load_model)
+        t.daemon = True
+        t.start()
+
+    def _load_model(self):
+        time.sleep(2)
         self.model = wxOpenGL.MeshModel(self.canvas, material, selected_material, True, r'examples/final_asm_asm.stp', point, angle)
 
 

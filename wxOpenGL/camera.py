@@ -218,9 +218,9 @@ class Camera:
         self._frustum_planes = None
         self._focal_target = None
 
-        self._position = _point.Point(0.0, Config.eye_height, 100)
+        self._position = _point.Point(0.0, Config.eye_height, 0.0)
 
-        self._eye = _point.Point(0.0, Config.eye_height + 25.0, 175.0)
+        self._eye = _point.Point(0.0, Config.eye_height + 100.0, 75.0)
 
         self._angle = _angle.Angle.from_points(self._position, self._eye)
 
@@ -248,8 +248,8 @@ class Camera:
             self._position.z = 0.0
 
             self._eye.x = 0.0
-            self._eye.y = Config.eye_height + 25.0
-            self._eye.z = 300
+            self._eye.y = Config.eye_height + 100.0
+            self._eye.z = 75.0
 
         self._update_camera(None)
 

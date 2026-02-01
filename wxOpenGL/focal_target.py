@@ -27,6 +27,7 @@ class FocalPoint(_base3d.Base3D):
         data = self._build_point(Config.camera.focal_target_radius)
         _base3d.Base3D.__init__(self, canvas, material, material, True,
                                 data, canvas.camera.position, angle)
+        self._rect = []
 
     @staticmethod
     def _build_point(radius=1.0):

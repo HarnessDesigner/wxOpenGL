@@ -25,55 +25,90 @@ _____
 
 ***Supported 3d model formats***
 ________________________________
-* STEP: Standard for the Exchange of Product Data (.stp, .step)
-* VRML: Virtual Reality Modeling Language (.wrl)
-* IGES: Initial Graphics Exchange Specification (.igs, .iges)
+* 3D GameStudio Model ( .mdl )
+* 3D GameStudio Terrain ( .hmp )
+* 3D Manufacturing Format (.3mf)
+* 3D Studio Max 3DS (.3ds)
+* 3D Studio Max ASE (.ase)
+* AC3D (.ac, .ac3d)
+* AutoCAD DXF (.dxf)
+* Autodesk DXF (.dxf)
+
+* Biovision BVH (.bvh)
+* Blender (.blend)
+
+* CharacterStudio Motion ( .csm )
+* Collada (.dae, .xml)
+
+* DirectX X (.x)
+* Doom 3 (.md5mesh, .md5anim, .md5camera)
+
+* FBX-Format, as ASCII and binary (.fbx)
+
+* glTF (.glTF)
+* glTF2.0 (.glTF)
+
+* IFC-STEP (.ifc)
+* Initial Graphics Exchange Specification (.igs, .iges)
+
+* Irrlicht Mesh (.irrmesh, .xml)
+* Irrlicht Scene (.irr, .xml)
+
+* KHR_lights_punctual ( 5.0 )
+* KHR_materials_pbrSpecularGlossiness ( 5.0 )
+* KHR_materials_unlit ( 5.0 )
+* KHR_texture_transform ( 5.1 under test )
+
+* LightWave Model ( .lwo )
+* LightWave Scene ( .lws )
+
+* Milkshape 3D ( .ms3d )
+* Modo Model ( .lxo )
+
+* Neutral File Format (.nff)
+
+* Object File Format ( .off )
+* Ogre ( .mesh.xml, .skeleton.xml, .material )
+* OpenGEX-Fomat (.ogex)
+
+* Quake I (.mdl)
+* Quake II (.md2)
+* Quake III (.md3)
+* Quake 3 BSP (.pk3)
+* Quick3D (.q3o, .q3s)
+
+* Raw Triangles (.raw)
+* RtCW (.mdc)
+
+* Sense8 WorldToolkit (.nff)
+* Standard for the Exchange of Product Data (.stp, .step)
+* Polygon File Format (.ply)
+* Stanford Triangle Format ( .ply )
+
+* Stereolithography (.stl)
+
+* Terragen Terrain ( .ter )
+* TrueSpace (.cob, .scn)
+
+* Valve Model (.smd, .vta)
+* Virtual Reality Modeling Language (.wrl)
+
+* Wavefront Object (.obj)
+* XGL-3D-Format (.xgl)
+
+
+
+
+
 * AMF: Additive manufacturing file format (.amf)
-* 3DS: 3D Studio Max 3DS (.3ds)
-* AC: AC3D (.ac, .ac3d) 
-* ASE: 3D Studio Max ASE (.ase)
 * ASSBIN: Allegorithmic Substance Painter Scene within Document (.assbin)
 * B3D: OpenBVE 3D (.b3d)
-* BVH: Biovision BVH (.bvh) 
-* COLLADA: Collada (.dae, .xml)
-* DXF: AutoCAD DXF (.dxf) 
-* CSM: CharacterStudio Motion ( .csm ) 
-* HMP: 3D GameStudio Terrain ( .hmp ) 
-* IRRMESH: Irrlicht Mesh (.irrmesh, .xml) 
-* IQM: Inter-Quake Model (.iqm) 
-* IRR: Irrlicht Scene (.irr, .xml) 
-* LWO: LightWave Model ( .lwo ) 
-* LWS: LightWave Scene ( .lws ) 
-* MD2: Quake II (.md2) 
-* MD3: Quake III (.md3) 
-* MD5: Doom 3 (.md5mesh, .md5anim, .md5camera) 
-* MDC: RtCW (.mdc) 
-* MDL: Quake I (.mdl), 3D GameStudio Model ( .mdl )
-* NFF: Neutral File Format (.nff), Sense8 WorldToolkit (.nff)
+* IQM: Inter-Quake Model (.iqm)
 * NDO: 3D Low-polygon Modeler (.ndo)
-* OFF: Object File Format (.off) 
-* OBJ: Wavefront OBJ format (.obj) 
-* OGRE: Ogre ( .mesh.xml, .skeleton.xml, .material ) 
-* OPENGEX: OpenGEX-Fomat (.ogex) 
-* PLY: Polygon File Format/Stanford Triangle Format. (.ply)  
-* MS3D: Milkshape 3D ( .ms3d ) 
-* COB: TrueSpace (.cob, .scn) 
-* BLEND: Blender (.blend)
-* IFC: Industry Foundation Classes IFC2x3 TC1, IFC4 Add2 TC1, IFC4x1, IFC4x2, and IFC4x3 Add2 (.ifc) 
-* XGL: RealityWave 3D polygonal mesh(.xgl)
-* FBX: FBX-Format, as ASCII and binary (.fbx)
 * Q3D: Quest3D (.q3d)
-* Q3BSP: Quake 3 BSP (.pk3) 
-* RAW: Raw Triangles (.raw) 
 * SIB: Silo Model Format (.sib)
-* SMD: Valve Model (.smd, .vta) 
-* STL: Stereolithography (.stl)  
-* TERRAGEN: Terragen Terrain ( .ter ) 
-* 3D 
-* X: DirectX 3D Graphics Format (legacy) (.x)
 * X3D: Extensible 3D (.x3d, .x3db, x3dz, x3dbz)
-* GLTF: GL Transmission Format (.gltf, .glb)
-* 3MF: 3D Manufacturing Format (.3mf) 
+* GLB: (.glb)
 * MMD: MikuMikuDance Format (.pmd, .pmx)
 
 

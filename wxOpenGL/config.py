@@ -327,9 +327,9 @@ class Config(metaclass=_Config):
         mouse = MOUSE_NONE
 
     class debug(metaclass=_Config):
-        log_args = False
-        call_duration = False
-        bypass = True
+        log_args = True
+        call_duration = True
+        bypass = False
 
     class headlight(metaclass=_Config):
         turn_on = True
