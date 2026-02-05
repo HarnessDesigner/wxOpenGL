@@ -33,73 +33,49 @@ ________________________________
 * AC3D (.ac, .ac3d)
 * AutoCAD DXF (.dxf)
 * Autodesk DXF (.dxf)
-
 * Biovision BVH (.bvh)
 * Blender (.blend)
-
 * CharacterStudio Motion ( .csm )
 * Collada (.dae, .xml)
-
 * DirectX X (.x)
 * Doom 3 (.md5mesh, .md5anim, .md5camera)
-
 * FBX-Format, as ASCII and binary (.fbx)
-
 * glTF (.glTF)
 * glTF2.0 (.glTF)
-
 * IFC-STEP (.ifc)
 * Initial Graphics Exchange Specification (.igs, .iges)
-
 * Irrlicht Mesh (.irrmesh, .xml)
 * Irrlicht Scene (.irr, .xml)
-
 * KHR_lights_punctual ( 5.0 )
 * KHR_materials_pbrSpecularGlossiness ( 5.0 )
 * KHR_materials_unlit ( 5.0 )
 * KHR_texture_transform ( 5.1 under test )
-
 * LightWave Model ( .lwo )
 * LightWave Scene ( .lws )
-
 * Milkshape 3D ( .ms3d )
 * Modo Model ( .lxo )
-
 * Neutral File Format (.nff)
-
 * Object File Format ( .off )
 * Ogre ( .mesh.xml, .skeleton.xml, .material )
 * OpenGEX-Fomat (.ogex)
-
 * Quake I (.mdl)
 * Quake II (.md2)
 * Quake III (.md3)
 * Quake 3 BSP (.pk3)
 * Quick3D (.q3o, .q3s)
-
 * Raw Triangles (.raw)
 * RtCW (.mdc)
-
 * Sense8 WorldToolkit (.nff)
 * Standard for the Exchange of Product Data (.stp, .step)
 * Polygon File Format (.ply)
 * Stanford Triangle Format ( .ply )
-
 * Stereolithography (.stl)
-
 * Terragen Terrain ( .ter )
 * TrueSpace (.cob, .scn)
-
 * Valve Model (.smd, .vta)
 * Virtual Reality Modeling Language (.wrl)
-
 * Wavefront Object (.obj)
 * XGL-3D-Format (.xgl)
-
-
-
-
-
 * AMF: Additive manufacturing file format (.amf)
 * ASSBIN: Allegorithmic Substance Painter Scene within Document (.assbin)
 * B3D: OpenBVE 3D (.b3d)

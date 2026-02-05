@@ -1,11 +1,20 @@
+import sys
+
+# Uncomment these to run using an installed version of the library ** PYCHARM **
+# sys.path.pop(0)
+# sys.path.pop(0)
+
+# Set this to True to load upwards of 6 million triangles
+STRESS_TEST = False
+
 import wx
 import wxOpenGL
 import threading
 import time
+import random
 
 material = wxOpenGL.PlasticMaterial([0.4, 0.4, 0.4, 1.0])
 selected_material = wxOpenGL.PlasticMaterial([1.0, 0.5, 0.5, 1.0])
-point = wxOpenGL.Point(0, 0, 0)
 angle = wxOpenGL.Angle.from_euler(90.0, 0, 0)
 
 selected_material.x_ray = True
@@ -30,7 +39,20 @@ class Frame(wx.Frame):
 
     def _load_model(self):
         time.sleep(2)
-        self.model = wxOpenGL.MeshModel(self.canvas, material, selected_material, True, r'examples/final_asm_asm.stp', point, angle)
+        self.models = []
+
+        if STRESS_TEST:
+            for _ in range(100):
+                point = wxOpenGL.Point(random.randrange(-1000, 1000), 0, random.randrange(-1000, 1000))
+                model = wxOpenGL.MeshModel(self.canvas, material, selected_material, True, r'examples/c-045788-000-a-3d.stp', point, angle)
+
+                wx.CallAfter(self.canvas.Refresh, False)
+                self.models.append(model)
+        else:
+            point = wxOpenGL.Point(0, 0, 0)
+            model = wxOpenGL.MeshModel(self.canvas, material, selected_material, True, r'examples/c-045788-000-a-3d.stp', point, angle)
+            wx.CallAfter(self.canvas.Refresh, False)
+            self.models.append(model)
 
 
 class App(wx.App):

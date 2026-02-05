@@ -20,7 +20,7 @@ class Base3D:
     @_debug.logfunc
     def __init__(self, canvas: "_Canvas", material: _glm.GLMaterial,
                  selected_material: _glm.GLMaterial, smooth: bool,
-                 data: list[list[np.ndarray, np.ndarray]],
+                 data: list[list[np.ndarray, np.ndarray]] | list[list[np.ndarray, np.ndarray, int]],
                  position: _point.Point | None, angle: _angle.Angle | None):
 
         self.canvas = canvas
@@ -49,7 +49,7 @@ class Base3D:
         # can be calculated if the user changes the setting for it.
         self._mesh: list[list[np.ndarray, np.ndarray]] = data
 
-        self._rect: list[list[_point.Point, _point.Point]] = []
+        self._rect: list[list[_point.Point, _point.Point]] | list[list[np.ndarray, np.ndarray, int]] = []
         self._bb: list[np.ndarray] = []
         self._triangles: list["TriangleRenderer"] = []
 
@@ -81,21 +81,27 @@ class Base3D:
         rect = []
         bb = []
 
-        for vertices, faces in data:
-            if self._reduce_settings is not None:
-                vertices, faces = _model_loader.reduce_triangles(
-                    vertices, faces, *self._reduce_settings
-                )
+        for items in data:
+            if len(items) == 2:
+                vertices, faces = items
 
-            if self._smooth:
-                tris, nrmls, count = self._compute_smoothed_vertex_normals(vertices, faces)
+                if self._reduce_settings is not None:
+                    vertices, faces = _model_loader.reduce_triangles(
+                        vertices, faces, *self._reduce_settings
+                    )
+
+                if self._smooth:
+                    tris, nrmls, count = self._compute_smoothed_vertex_normals(vertices, faces)
+                else:
+                    tris, nrmls, count = self._compute_vertex_normals(vertices, faces)
+
+                tris @= angle
+                nrmls @= angle
+
+                tris += position
+
             else:
-                tris, nrmls, count = self._compute_vertex_normals(vertices, faces)
-
-            tris @= angle
-            nrmls @= angle
-
-            tris += position
+                tris, nrmls, count = items
 
             p1, p2 = self._compute_rect(tris)
             rect.append([p1, p2])
@@ -420,7 +426,6 @@ class TriangleRenderer:
             GL.glNormalPointer(GL.GL_DOUBLE, 0, nrmls)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, count)
 
-        self._material.unset()
-
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_NORMAL_ARRAY)
+        self._material.unset()

@@ -128,8 +128,9 @@ class Canvas(glcanvas.GLCanvas):
         self._selected = None
         self._objects = []
         self._ref_count = 0
-        self.grid_vbo = None
-        self.grid_vertex_count = 0
+        self.grid_data = None
+        self.grid_lines_stipple = None
+        self.grid_lines_solid = None
 
         self._angle_overlay_bitmap = wx.NullBitmap
 
@@ -428,73 +429,128 @@ class Canvas(glcanvas.GLCanvas):
     @staticmethod
     def initialize_grid():
         """Precompute the grid geometry and colors and upload it to a VBO."""
+        even_color = Config.floor.primary_color
+        ground_height = Config.floor.ground_height
+        size = Config.floor.distance
+        step = Config.floor.grid_size
 
-        if not Config.grid.render:
-            return
+        def get_vbo(verts, clrs):
+            # Flatten the data
+            verts = np.array(verts, dtype=np.float32).flatten()
+            clrs = np.array(clrs, dtype=np.float32).flatten()
 
-        # Grid configuration
-        size = Config.grid.size
-        step = Config.grid.step
-        even_color = Config.grid.even_color
-        odd_color = Config.grid.odd_color
-        ground_height = Config.ground_height
+            # Combine vertices and colors into one array to pass to OpenGL
+            v_data = np.concatenate((verts, clrs))
 
-        # Precompute vertices and colors
-        vertices = []
-        colors = []
+            # Calculate the number of vertices (for rendering)
+            verts_count = len(verts) // 3
 
-        for x in range(-size, size, step):
-            for y in range(-size, size, step):
-                # Alternate coloring for checkerboard effect
-                is_even = ((x // step) + (y // step)) % 2 == 0
-                color = even_color if is_even else odd_color
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)  # Unbind the VBO
 
-                # Each quad consists of 4 vertices
-                vertices.extend([
-                    [x, ground_height, y],              # Bottom-left
-                    [x, ground_height, y + step],      # Top-left
-                    [x + step, ground_height, y + step],  # Top-right
-                    [x + step, ground_height, y],      # Bottom-right
+            vbo = GL.glGenBuffers(1)
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
+            GL.glBufferData(GL.GL_ARRAY_BUFFER, v_data.nbytes,
+                            v_data, GL.GL_STATIC_DRAW)
+
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)  # Unbind the VBO
+
+            return vbo, verts_count
+
+        if Config.floor.show_grid:
+            # Grid configuration
+
+            odd_color = Config.floor.secondary_color
+
+            # Precompute vertices and colors
+            vertices = []
+            colors = []
+
+            for x in range(-size, size, step):
+                for y in range(-size, size, step):
+                    # Alternate coloring for checkerboard effect
+                    is_even = ((x // step) + (y // step)) % 2 == 0
+                    color = even_color if is_even else odd_color
+
+                    # Each quad consists of 4 vertices
+                    vertices.extend([
+                        [x, ground_height, y],              # Bottom-left
+                        [x, ground_height, y + step],      # Top-left
+                        [x + step, ground_height, y + step],  # Top-right
+                        [x + step, ground_height, y],      # Bottom-right
+                    ])
+
+                    # Each vertex has the same color for the quad
+                    colors.extend([color] * 4)
+        else:
+            vertices = [[size, ground_height, size],
+                        [size, ground_height, -size],
+                        [-size, ground_height, -size],
+                        [-size, ground_height, size]]
+
+            colors = [even_color] * 4
+
+        grid_vbo, grid_vertex_count = get_vbo(vertices, colors)
+
+        sstep = step / 5.0
+        y1 = ground_height + 0.1
+        y2 = ground_height + 0.15
+
+        def frange(start, stop, inc):
+            value = start
+            while value < stop:
+                yield value
+                value += inc
+
+        stipple_lines = []
+        solid_lines = []
+
+        stipple_colors = []
+        solid_colors = []
+
+        for i in frange(-size, size, sstep):
+            if not i % step:
+                solid_colors.extend([0.8, 0.8, 0.8, 1.0] * 4)
+                solid_lines.extend([
+                    [i, y2, size],
+                    [i, y2, -size],
+                    [size, y2, i],
+                    [-size, y2, i]
                 ])
+            else:
+                stipple_colors.extend([0.4, 0.4, 0.4, 1.0] * 4)
+                stipple_lines.extend(
+                    [
+                        [i, y1, size],
+                        [i, y1, -size],
+                        [size, y1, i],
+                        [-size, y1, i]
+                    ]
+                )
 
-                # Each vertex has the same color for the quad
-                colors.extend([color] * 4)
+        stipple_vbo, stipple_vertex_count = get_vbo(stipple_lines, stipple_colors)
+        solid_vbo, solid_vertex_count = get_vbo(solid_lines, solid_colors)
 
-        # Flatten the data
-        vertices = np.array(vertices, dtype=np.float32).flatten()
-        colors = np.array(colors, dtype=np.float32).flatten()
-
-        # Combine vertices and colors into one array to pass to OpenGL
-        grid_vbo_data = np.concatenate((vertices, colors))
-
-        # Calculate the number of vertices (for rendering)
-        grid_vertex_count = len(vertices) // 3
-
-        # Create and upload the VBO
-        grid_vbo = GL.glGenBuffers(1)
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, grid_vbo)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, grid_vbo_data.nbytes,
-                        grid_vbo_data, GL.GL_STATIC_DRAW)
-
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)  # Unbind the VBO
-
-        return grid_vbo, grid_vertex_count
+        return ((grid_vbo, grid_vertex_count),
+                (stipple_vbo, stipple_vertex_count),
+                (solid_vbo, solid_vertex_count))
 
     @_debug.logfunc
     def DrawGrid(self):
         """Render the precomputed grid using the VBO."""
-        if not Config.grid.render:
-            return
 
-        if self.grid_vbo is None:
+        if self.grid_data is None:
             # Ensure the VBO is initialized
-            self.grid_vbo, self.grid_vertex_count = self.initialize_grid()
+            (
+                self.grid_data,
+                self.grid_lines_stipple,
+                self.grid_lines_solid
+            ) = self.initialize_grid()
 
         # Setup the VBO for rendering
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.grid_vbo)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.grid_data[0])
 
         # Configure vertex attributes (position and color)
-        vertex_size = self.grid_vertex_count * 3 * 4  # Total size of vertex data (position: x, y, z)
+        vertex_size = self.grid_data[1] * 3 * 4  # Total size of vertex data (position: x, y, z)
         color_offset = vertex_size  # Colors start immediately after vertices
 
         stride = 0  # No stride between consecutive vertex positions
@@ -505,50 +561,63 @@ class Canvas(glcanvas.GLCanvas):
         GL.glColorPointer(4, GL.GL_FLOAT, stride, ctypes.c_void_p(color_offset))  # Next 3 floats are color
 
         # Draw the grid
-        GL.glDrawArrays(GL.GL_QUADS, 0, self.grid_vertex_count)
+        GL.glDrawArrays(GL.GL_QUADS, 0, self.grid_data[1])
 
         # Cleanup
         GL.glDisableClientState(GL.GL_COLOR_ARRAY)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
-    #
-    # @staticmethod
-    # @_debug.logfunc
-    # def DrawGrid():
-    #     if not Config.grid.render:
-    #         return
-    #
-    #     # --- Tiles ---
-    #     size = Config.grid.size
-    #     step = Config.grid.step
-    #     even_color = Config.grid.even_color
-    #     odd_color = Config.grid.odd_color
-    #     ground_height = Config.ground_height
-    #
-    #     GL.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, [0.5, 0.5, 0.5, 0.5])
-    #     GL.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, [0.3, 0.3, 0.3, 0.5])
-    #     GL.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, [0.5, 0.5, 0.5, 0.5])
-    #
-    #     GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, [0.3, 0.3, 0.3, 0.5])
-    #     GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, [0.5, 0.5, 0.5, 0.5])
-    #     GL.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, [0.8, 0.8, 0.8, 0.5])
-    #     GL.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, 125.0)
-    #
-    #     for x in range(-size, size, step):
-    #         for y in range(-size, size, step):
-    #             # Alternate coloring for checkerboard effect
-    #             is_even = ((x // step) + (y // step)) % 2 == 0
-    #             if is_even:
-    #                 GL.glColor4f(*even_color)
-    #             else:
-    #                 GL.glColor4f(*odd_color)
-    #
-    #             GL.glBegin(GL.GL_QUADS)
-    #             GL.glVertex3f(x, ground_height, y)
-    #             GL.glVertex3f(x, ground_height, y + step)
-    #             GL.glVertex3f(x + step, ground_height, y + step)
-    #             GL.glVertex3f(x + step, ground_height, y)
-    #             GL.glEnd()
+
+        # stipple lines
+        # Setup the VBO for rendering
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.grid_lines_stipple[0])
+
+        # Configure vertex attributes (position and color)
+        vertex_size = self.grid_lines_stipple[1] * 3 * 4  # Total size of vertex data (position: x, y, z)
+        color_offset = vertex_size  # Colors start immediately after vertices
+
+        GL.glLineStipple(1, 0xFF00)
+        GL.glEnable(GL.GL_LINE_STIPPLE)
+
+        stride = 0  # No stride between consecutive vertex positions
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glVertexPointer(3, GL.GL_FLOAT, stride, ctypes.c_void_p(0))  # First 3 floats are position
+
+        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+        GL.glColorPointer(4, GL.GL_FLOAT, stride, ctypes.c_void_p(color_offset))  # Next 3 floats are color
+
+        # Draw the grid
+        GL.glDrawArrays(GL.GL_LINES, 0, self.grid_lines_stipple[1])
+
+        # Cleanup
+        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDisable(GL.GL_LINE_STIPPLE)
+
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+
+        # solid lines
+        # Setup the VBO for rendering
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.grid_lines_solid[0])
+
+        # Configure vertex attributes (position and color)
+        vertex_size = self.grid_lines_solid[1] * 3 * 4  # Total size of vertex data (position: x, y, z)
+        color_offset = vertex_size  # Colors start immediately after vertices
+
+        stride = 0  # No stride between consecutive vertex positions
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glVertexPointer(3, GL.GL_FLOAT, stride, ctypes.c_void_p(0))  # First 3 floats are position
+
+        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+        GL.glColorPointer(4, GL.GL_FLOAT, stride, ctypes.c_void_p(color_offset))  # Next 3 floats are color
+
+        # Draw the grid
+        GL.glDrawArrays(GL.GL_LINES, 0, self.grid_lines_solid[1])
+
+        # Cleanup
+        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
     @_debug.logfunc
     def _render_bounding_boxes(self):
@@ -684,6 +753,25 @@ class Canvas(glcanvas.GLCanvas):
         for obj in objects:
             for renderer in obj.triangles:
                 renderer()
+
+            if obj.is_selected and obj.rect:
+                GL.glColor4f(1.0, 0.4, 0.4, 1.0)
+                GL.glLineWidth(2.0)
+                p1, p2 = obj.rect[0]
+
+                GL.glBegin(GL.GL_LINES)
+                GL.glVertex3f(p1.x, 0.20, p1.z)
+                GL.glVertex3f(p1.x, 0.20, p2.z)
+
+                GL.glVertex3f(p1.x, 0.20, p2.z)
+                GL.glVertex3f(p2.x, 0.20, p2.z)
+
+                GL.glVertex3f(p2.x, 0.20, p2.z)
+                GL.glVertex3f(p2.x, 0.20, p1.z)
+
+                GL.glVertex3f(p2.x, 0.20, p1.z)
+                GL.glVertex3f(p1.x, 0.20, p1.z)
+                GL.glEnd()
 
     @_debug.logfunc
     def OnDraw(self):

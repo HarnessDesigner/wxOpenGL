@@ -7,6 +7,7 @@ from .. import model_loader as _model_loader
 from ..geometry import angle as _angle
 from ..geometry import point as _point
 
+
 if TYPE_CHECKING:
     from .. import Canvas as _Canvas
     from .. import gl_materials as _glm
@@ -43,13 +44,22 @@ class _ModelData(metaclass=_ModelDataMeta):
 
 class MeshModel(_base3d.Base3D):
 
-    def __init__(self, canvas: "_Canvas", material: "_glm.GLMaterial",
-                 selected_material: "_glm.GLMaterial", smooth: bool,
-                 file: str, position: _point.Point | None = None,
-                 angle: _angle.Angle | None = None):
+    def __init__(
+        self, canvas: "_Canvas", material: "_glm.GLMaterial",
+        selected_material: "_glm.GLMaterial", smooth: bool,
+        file: str | None, position: _point.Point | None = None,
+        angle: _angle.Angle | None = None
+    ):
+        self._model_data = None
 
-        self.__model_data = _ModelData(file)
-        data = self.__model_data.data[:]
+        if file is None:
+            data = []
+        else:
+            data = self.load_file(file)
 
         _base3d.Base3D.__init__(self, canvas, material, selected_material,
                                 smooth, data, position, angle)
+
+    def load_file(self, file):
+        self._model_data = _ModelData(file)
+        return self._model_data.data[:]

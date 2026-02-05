@@ -15,9 +15,9 @@ class MeshGeneric(_base3d.Base3D):
 
     def __init__(self, canvas: "_Canvas", material: "_glm.GLMaterial",
                  selected_material: "_glm.GLMaterial", smooth: bool,
-                 vertices: np.ndarray, faces: np.ndarray,
+                 data: list[list[np.ndarray, np.ndarray]] | list[list[np.ndarray, np.ndarray, int]],
                  position: _point.Point | None = None,
                  angle: _angle.Angle | None = None):
 
         _base3d.Base3D.__init__(self, canvas, material, selected_material,
-                                smooth, [[vertices, faces]], position, angle)
+                                smooth, data, position, angle)

@@ -9,6 +9,7 @@ from .geometry import angle as _angle
 from . import gl_materials as _gl_materials
 from .objects import mesh_model as _mesh_model
 from .objects import mesh_generic as _mesh_generic
+from .objects import base3d as _base3d
 
 Config = _config.Config
 
@@ -23,12 +24,14 @@ YellowPlasticMaterial = _gl_materials.YellowPlasticMaterial
 RubberMaterial = _gl_materials.RubberMaterial
 MetallicMaterial = _gl_materials.MetallicMaterial
 PolishedMaterial = _gl_materials.PolishedMaterial
+GLMaterial = _gl_materials.GLMaterial
 
 Point = _point.Point
 Angle = _angle.Angle
+
 MeshGeneric = _mesh_generic.MeshGeneric
 MeshModel = _mesh_model.MeshModel
-
+Base3D = _base3d.Base3D
 
 CONFIG_MOUSE_NONE = _config.MOUSE_NONE
 CONFIG_MOUSE_LEFT = _config.MOUSE_LEFT
@@ -76,6 +79,8 @@ EVT_GL_OBJECT_AUX2_CLICK = _mouse_handler.EVT_GL_OBJECT_AUX2_CLICK
 
 wxEVT_GL_OBJECT_AUX2_DCLICK = _mouse_handler.wxEVT_GL_OBJECT_AUX2_DCLICK
 EVT_GL_OBJECT_AUX2_DCLICK = _mouse_handler.EVT_GL_OBJECT_AUX2_DCLICK
+
+GLObjectEvent = _mouse_handler.GLObjectEvent
 
 
 class Canvas(wx.Panel):
